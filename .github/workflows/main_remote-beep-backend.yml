@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - remote-beep-api
+name: Build and deploy ASP.Net Core app to Azure Web App - remote-beep-backend
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.x'
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -51,15 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0E5241C231F54DACA205D10119A8DDE2 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_804C898857CA4631A4235490F96CB88F }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CC09BC547DAF4F52BCF7CC19868ED20E }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9B59AF14040C4D7088319417D7F8831F }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A2BAFE75CC254694877F5FCDA4609498 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_731150DEA1D947A0A519D257FE06549D }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'remote-beep-api'
+          app-name: 'remote-beep-backend'
           slot-name: 'Production'
           package: .
           
