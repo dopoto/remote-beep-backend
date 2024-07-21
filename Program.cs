@@ -1,7 +1,7 @@
-﻿using Backend.Services;
-using Microsoft.AspNetCore.SignalR;
+using RemoteBeep.Backend.Services;
 using Microsoft.Extensions.Caching.Memory;
 using RemoteBeep.BackEnd.Models;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,23 +17,30 @@ builder.Configuration
 
 builder.Services.AddSignalR();
 builder.Services.AddCors();
-//builder.Services.AddCors(options =>
-//{
-//    var frontEndUrl = environmentSettings.FrontEndUrl ?? "";
-//    var allowedOrigins = new[] { frontEndUrl };
-//    options.AddDefaultPolicy(builder =>
-//    {
-//        builder.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
-//    });
-//});
-builder.Services.AddApplicationInsightsTelemetry(environmentSettings.ApplicationInsightsInstrumentationKey);
-builder.Services.Add(ServiceDescriptor.Singleton<IMemoryCache, MemoryCache>());
+//builder.Services.AddControllers();
+//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
 
+builder.Services.Add(ServiceDescriptor.Singleton<IMemoryCache, MemoryCache>());
 builder.Services.AddSingleton<GroupService>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
+//app.UseHttpsRedirection();
+
+//app.UseAuthorization();
+
+//app.MapControllers();
+
+//app.Run();
 
 app.UseCors(builder =>
 {
@@ -48,8 +55,8 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<BeepHub>("/hub");
 });
-app.MapGet("/devices-in-group", 
-    (HttpContext context, GroupService groupService) => 
+app.MapGet("/devices-in-group",
+    (HttpContext context, GroupService groupService) =>
         groupService.GetConnectionsByGroup(context.Request.Query["groupName"])
 );
 
@@ -65,7 +72,7 @@ public class BeepHub : Hub
     {
         _groupService = groupService;
     }
- 
+
 
     public async Task Play(string freqInKhz, string durationInSeconds, string groupName)
     {
@@ -88,7 +95,7 @@ public class BeepHub : Hub
         _groupService.AddConnectionToGroup(groupName, Context.ConnectionId);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
-        var devicesInCurrentGroup =_groupService.GetConnectionsByGroup(groupName);
+        var devicesInCurrentGroup = _groupService.GetConnectionsByGroup(groupName);
         await Clients
             .Group(groupName)
             .SendAsync("addedToGroup", Context.ConnectionId, devicesInCurrentGroup);
@@ -102,9 +109,6 @@ public class BeepHub : Hub
         var devicesInCurrentGroup = _groupService.GetConnectionsByGroup(groupName);
         await Clients
             .Group(groupName)
-            .SendAsync("removedFromGroup", Context.ConnectionId, devicesInCurrentGroup);        
+            .SendAsync("removedFromGroup", Context.ConnectionId, devicesInCurrentGroup);
     }
-
 }
-
-

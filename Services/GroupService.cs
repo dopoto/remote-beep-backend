@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
-namespace Backend.Services;
+namespace RemoteBeep.Backend.Services;
 
 public class GroupService
 {
