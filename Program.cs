@@ -12,15 +12,42 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddUserSecrets<EnvironmentSpecificSettings>(optional: true)
     .AddEnvironmentVariables();
+
+// Add services to the container.
+
 builder.Services.AddSignalR();
-builder.Services.AddMemoryCache();
+//builder.Services.AddCors();
+//builder.Services.AddControllers();
+//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
+
+builder.Services.Add(ServiceDescriptor.Singleton<IMemoryCache, MemoryCache>());
 builder.Services.AddSingleton<GroupService>();
 
 var app = builder.Build();
 
-// Preload SignalR hubs by making a dummy connection during startup
-var hubContext = app.Services.GetService<IHubContext<BeepHub>>();
-await hubContext.Clients.All.SendAsync("preload");
+// Configure the HTTP request pipeline.
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
+//app.UseHttpsRedirection();
+
+//app.UseAuthorization();
+
+//app.MapControllers();
+
+//app.Run();
+
+//app.UseCors(builder =>
+//{
+//    builder.WithOrigins(origins: environmentSettings.AllowedCorsOrigins ?? []);
+//    builder.AllowAnyHeader();
+//    builder.AllowAnyMethod();
+//});
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -32,9 +59,10 @@ app.MapGet("/devices-in-group",
     (HttpContext context, GroupService groupService) =>
         groupService.GetConnectionsByGroup(context.Request.Query["groupName"])
 );
-app.MapGet("/healthcheck", () => "1");
+
 
 app.Run();
+
 
 public class BeepHub : Hub
 {
@@ -44,6 +72,7 @@ public class BeepHub : Hub
     {
         _groupService = groupService;
     }
+
 
     public async Task Play(string freqInKhz, string durationInSeconds, string groupName)
     {
