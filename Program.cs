@@ -13,56 +13,36 @@ builder.Configuration
     .AddUserSecrets<EnvironmentSpecificSettings>(optional: true)
     .AddEnvironmentVariables();
 
-// Add services to the container.
-
 builder.Services.AddSignalR();
-//builder.Services.AddCors();
-//builder.Services.AddControllers();
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
 builder.Services.Add(ServiceDescriptor.Singleton<IMemoryCache, MemoryCache>());
 builder.Services.AddSingleton<GroupService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllPolicy", builder =>
+    {
+        builder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-
-//app.UseHttpsRedirection();
-
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();
-
-//app.UseCors(builder =>
-//{
-//    builder.WithOrigins(origins: environmentSettings.AllowedCorsOrigins ?? []);
-//    builder.AllowAnyHeader();
-//    builder.AllowAnyMethod();
-//});
-
-app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors();
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<BeepHub>("/hub");
-});
-app.MapGet("/devices-in-group",
-    (HttpContext context, GroupService groupService) =>
-        groupService.GetConnectionsByGroup(context.Request.Query["groupName"])
-);
+    endpoints.MapHub<BeepHub>("/hub")
+             .RequireCors("AllowAllPolicy");  
 
+    endpoints.MapGet("/devices-in-group",
+        (HttpContext context, GroupService groupService) =>
+            groupService.GetConnectionsByGroup(context.Request.Query["groupName"])
+    ).RequireCors("AllowAllPolicy"); 
+});
 
 app.Run();
-
 
 public class BeepHub : Hub
 {
